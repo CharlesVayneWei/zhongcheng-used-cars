@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+coverage/
+output/
+.env
+.env.local
+.env.*.local
+*.log
+.vercel/
+.open-next/
+.wrangler/
+.dev.vars
+.dev.vars.*

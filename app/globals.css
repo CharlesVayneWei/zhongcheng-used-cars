@@ -1,0 +1,260 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #161617;
+  --muted: #6e6e73;
+  --paper: #f5f5f7;
+  --panel: #ffffff;
+  --line: #d2d2d7;
+  --accent: #c6322b;
+  --black: #090909;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 96px; }
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+button, input, select, textarea { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 2px solid #e8672d; outline-offset: 3px; }
+::selection { color: white; background: var(--accent); }
+
+.contact-dialog {
+  width: min(560px, calc(100% - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 28px;
+  background: #fff;
+  color: #161617;
+  box-shadow: 0 32px 100px rgb(0 0 0 / 42%);
+}
+.contact-dialog[open] { animation: contact-dialog-in .24s cubic-bezier(.2, .8, .2, 1); }
+.contact-dialog::backdrop { background: rgb(0 0 0 / 66%); backdrop-filter: blur(8px); animation: contact-backdrop-in .2s ease-out; }
+.contact-dialog__panel { overflow: auto; max-height: calc(100dvh - 32px); }
+.contact-dialog__brand { position: relative; display: grid; min-height: 142px; place-items: center; padding: 30px 68px; background: #080808; }
+.contact-dialog__brand::after { content: ""; position: absolute; inset: auto 0 0; height: 3px; background: linear-gradient(90deg, #ff7a18, #e14818 58%, #ff9b34); }
+.contact-dialog__logo { width: min(100%, 300px); height: auto; object-fit: contain; }
+.contact-dialog__close { position: absolute; top: 18px; right: 18px; display: grid; width: 36px; height: 36px; cursor: pointer; place-items: center; border: 1px solid rgb(255 255 255 / 16%); border-radius: 999px; background: rgb(255 255 255 / 8%); color: #fff; transition: background .2s ease, transform .2s ease; }
+.contact-dialog__close:hover { background: rgb(255 255 255 / 17%); transform: rotate(4deg); }
+.contact-dialog__close svg { width: 16px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 1.7; }
+.contact-dialog__content { padding: 34px 36px 32px; }
+.contact-dialog__eyebrow { margin: 0 0 9px; color: #b94a1e; font-size: 10px; font-weight: 800; letter-spacing: .2em; }
+.contact-dialog__content h2 { margin: 0; font-size: clamp(28px, 5vw, 38px); font-weight: 650; letter-spacing: -.045em; line-height: 1.18; }
+.contact-dialog__description { max-width: 450px; margin: 13px 0 0; color: #6e6e73; font-size: 14px; line-height: 1.75; }
+.contact-dialog__methods { display: grid; gap: 10px; margin-top: 27px; }
+.contact-dialog__method { display: flex; width: 100%; min-height: 78px; cursor: pointer; align-items: center; gap: 14px; border: 1px solid #e3e3e6; border-radius: 17px; background: #f8f8fa; padding: 13px 15px; color: #1d1d1f; text-align: left; text-decoration: none; transition: border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease; }
+.contact-dialog__method:hover { border-color: #c8c8cc; background: #fff; box-shadow: 0 9px 30px rgb(0 0 0 / 7%); transform: translateY(-1px); }
+.contact-dialog__method--disabled { cursor: default; opacity: .55; }
+.contact-dialog__method--disabled:hover { border-color: #e3e3e6; background: #f8f8fa; box-shadow: none; transform: none; }
+.contact-dialog__icon { display: grid; flex: none; width: 44px; height: 44px; place-items: center; border-radius: 14px; background: #121212; color: #fff; }
+.contact-dialog__icon svg { width: 22px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+.contact-dialog__method:nth-child(2) .contact-dialog__icon svg { fill: currentColor; stroke: none; }
+.contact-dialog__method-copy { display: grid; min-width: 0; gap: 4px; }
+.contact-dialog__method-copy small { color: #86868b; font-size: 11px; }
+.contact-dialog__method-copy strong { overflow: hidden; font-size: 16px; font-weight: 650; letter-spacing: .01em; text-overflow: ellipsis; white-space: nowrap; }
+.contact-dialog__action { margin-left: auto; color: #b94a1e; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.contact-dialog__note { margin: 20px 0 0; color: #8a8a8e; font-size: 11px; line-height: 1.6; text-align: center; }
+
+@keyframes contact-dialog-in { from { opacity: 0; transform: translateY(14px) scale(.975); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes contact-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+
+.display-font { font-family: inherit; font-weight: 600; letter-spacing: -.045em; }
+.page-width { width: min(1440px, calc(100% - 48px)); margin-inline: auto; }
+.card-shadow { box-shadow: 0 20px 60px rgb(0 0 0 / 7%); }
+.glass { background: rgb(255 255 255 / 82%); backdrop-filter: saturate(180%) blur(20px); }
+.car-placeholder {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 78% 18%, rgb(255 255 255 / 22%), transparent 24%),
+    linear-gradient(145deg, #d6d6d7 0%, #8b8b8f 40%, #222225 100%);
+}
+.car-placeholder::before {
+  content: "";
+  position: absolute;
+  inset: auto -10% -40% 30%;
+  height: 75%;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 10%);
+  transform: rotate(-9deg);
+}
+.car-placeholder svg { filter: drop-shadow(0 28px 18px rgb(0 0 0 / 28%)); }
+.condition-copy { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #86868b; }
+.primary-button { display: inline-grid; min-height: 48px; cursor: pointer; place-items: center; border-radius: 999px; background: #111; padding: 0 24px; color: #fff; font-size: 14px; font-weight: 600; transition: .2s ease; }
+.primary-button:hover { background: #333336; }
+.secondary-button { display: inline-grid; min-height: 48px; cursor: pointer; place-items: center; border-radius: 999px; background: #e8e8ed; padding: 0 24px; color: #1d1d1f; font-size: 14px; font-weight: 600; transition: .2s ease; }
+.secondary-button:hover { background: #dedee3; }
+
+@media (max-width: 640px) {
+  .page-width { width: min(100% - 28px, 1440px); }
+  .contact-dialog { width: min(100% - 20px, 560px); max-height: calc(100dvh - 20px); border-radius: 22px; }
+  .contact-dialog__panel { max-height: calc(100dvh - 20px); }
+  .contact-dialog__brand { min-height: 110px; padding: 24px 64px 22px 28px; }
+  .contact-dialog__logo { width: min(100%, 230px); }
+  .contact-dialog__close { top: 14px; right: 14px; }
+  .contact-dialog__content { padding: 26px 20px 23px; }
+  .contact-dialog__method { min-height: 70px; gap: 11px; padding: 11px; }
+  .contact-dialog__icon { width: 40px; height: 40px; border-radius: 12px; }
+  .contact-dialog__method-copy strong { font-size: 14px; }
+  .contact-dialog__action { font-size: 10px; }
+}
+
+/* Homepage: full-bleed editorial scenes. The vehicle listing pages keep their own styles. */
+.home-page { background: #0b0d10; }
+main:has(.home-page) + footer { margin-top: 0; }
+.home-panel { position: relative; isolation: isolate; display: flex; min-height: max(720px, 100svh); overflow: hidden; color: #fff; }
+.home-panel--hero { min-height: max(680px, calc(100svh - 80px)); }
+.home-panel__image, .home-panel__shade { position: absolute; inset: 0; z-index: -1; }
+.home-panel__image { background-size: cover; background-repeat: no-repeat; }
+.home-panel__image--tesla { background-image: url('/home/tesla.jpg'); background-position: center 58%; }
+.home-panel__image--porsche { background-image: url('/home/mercedes-amg-8k.webp'); background-position: center 55%; }
+.home-panel__image--mercedes { background-image: url('/home/porsche-red.jpg'); background-position: center 52%; }
+.home-panel__image--bmw { background-image: url('/home/bmw.jpg'); background-position: center 62%; }
+.home-panel__image--audi { background-image: url('/home/audi.jpg'); background-position: center 52%; }
+@media (min-width: 768px) {
+  .home-panel__image--tesla { background-image: url('/home/tesla-4k.jpg'); }
+  .home-panel__image--porsche { background-image: url('/home/mercedes-amg-8k.webp'); }
+  .home-panel__image--mercedes { background-image: url('/home/porsche-red-4k.jpg'); }
+  .home-panel__image--bmw { background-image: url('/home/bmw-4k.jpg'); }
+  .home-panel__image--audi { background-image: url('/home/audi-4k.jpg'); }
+}
+.home-panel__shade--hero { background: linear-gradient(90deg, rgb(6 12 20 / 76%) 0%, rgb(6 12 20 / 36%) 47%, transparent 82%), linear-gradient(0deg, rgb(8 13 20 / 44%), transparent 33%); }
+.home-panel__shade--featured { background: linear-gradient(90deg, rgb(8 9 12 / 82%) 0%, rgb(8 9 12 / 52%) 42%, rgb(8 9 12 / 8%) 83%), linear-gradient(0deg, rgb(8 9 12 / 45%), transparent 50%); }
+.home-panel__shade--latest { background: linear-gradient(90deg, rgb(7 10 14 / 88%) 0%, rgb(7 10 14 / 68%) 42%, rgb(7 10 14 / 34%) 100%), linear-gradient(0deg, rgb(7 10 14 / 39%), transparent 55%); }
+.home-panel__shade--promise { background: linear-gradient(180deg, rgb(249 246 238 / 96%) 0%, rgb(249 246 238 / 90%) 52%, rgb(249 246 238 / 3%) 76%); }
+.home-panel__shade--closing { background: linear-gradient(180deg, rgb(244 244 242 / 93%) 0%, rgb(244 244 242 / 69%) 35%, rgb(244 244 242 / 0%) 76%); }
+.home-panel__content { position: relative; display: flex; flex: none; flex-direction: column; justify-content: space-between; min-height: inherit; padding-block: clamp(80px, 11vh, 140px) 62px; }
+.home-panel__content--hero { justify-content: center; }
+.home-panel__content--featured { align-items: flex-start; gap: 64px; }
+.home-panel__content--latest { align-items: flex-start; gap: 55px; }
+.home-panel__content--promise { justify-content: flex-start; gap: 26px; padding-top: 70px; }
+.home-panel__content--closing { justify-content: flex-start; }
+.home-copy { position: relative; max-width: 790px; text-shadow: 0 2px 30px rgb(0 0 0 / 22%); }
+.home-copy--hero { max-width: 850px; }
+.home-copy--dark { color: #101216; text-shadow: none; }
+.home-kicker { margin: 0 0 25px; font-size: 11px; font-weight: 700; letter-spacing: .23em; text-transform: uppercase; }
+.home-heading { margin: 0; font-size: clamp(52px, 6.1vw, 100px); font-weight: 600; letter-spacing: -.065em; line-height: 1.06; }
+.home-heading--hero { font-size: clamp(56px, 6.65vw, 112px); }
+.home-panel--promise .home-heading { font-size: clamp(48px, 5vw, 76px); }
+.home-description { max-width: 580px; margin: 25px 0 0; font-size: clamp(15px, 1.24vw, 18px); line-height: 1.85; color: rgb(255 255 255 / 84%); }
+.home-copy--dark .home-description { color: #343a40; }
+.home-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 35px; }
+.home-button { display: inline-flex; cursor: pointer; align-items: center; justify-content: space-between; gap: 45px; min-width: 190px; min-height: 51px; padding: 12px 22px; border: 1px solid transparent; border-radius: 4px; font-size: 13px; font-weight: 700; letter-spacing: .03em; text-decoration: none; transition: background .2s ease, color .2s ease, transform .2s ease; }
+.home-button:hover { transform: translateY(-2px); }
+.home-button--light { background: #fff; color: #111; }
+.home-button--light:hover { background: #e8e8e8; }
+.home-button--outline { border-color: rgb(255 255 255 / 80%); background: rgb(13 17 22 / 12%); color: #fff; backdrop-filter: blur(8px); }
+.home-button--outline:hover { background: rgb(255 255 255 / 17%); }
+.home-button--dark { background: #141618; color: #fff; }
+.home-button--dark:hover { background: #333; }
+.home-button--outline-dark { border-color: #1e2528; background: rgb(255 255 255 / 25%); color: #101216; }
+.home-button--outline-dark:hover { background: rgb(255 255 255 / 55%); }
+.home-panel__index { position: absolute; right: 0; bottom: 29px; font-size: 10px; font-weight: 700; letter-spacing: .2em; color: rgb(255 255 255 / 78%); }
+.home-panel__index--dark { color: rgb(16 18 22 / 70%); }
+.home-feature-card { display: flex; width: min(100%, 570px); min-height: 190px; overflow: hidden; border: 1px solid rgb(255 255 255 / 28%); border-radius: 4px; background: rgb(9 12 16 / 70%); box-shadow: 0 25px 75px rgb(0 0 0 / 18%); color: #fff; backdrop-filter: blur(18px); transition: background .2s ease, transform .2s ease; }
+.home-feature-card:hover { transform: translateY(-3px); background: rgb(9 12 16 / 82%); }
+.home-feature-card__image { position: relative; width: 39%; min-height: 190px; overflow: hidden; background: #17191d; }
+.home-feature-card__body { display: flex; flex: 1; flex-direction: column; justify-content: center; min-width: 0; padding: 24px 28px; }
+.home-feature-card__label { margin: 0 0 10px; font-size: 10px; font-weight: 700; letter-spacing: .15em; color: rgb(255 255 255 / 63%); }
+.home-feature-card h3 { margin: 0; font-size: clamp(19px, 2vw, 26px); font-weight: 600; line-height: 1.3; }
+.home-feature-card__body > p:not(.home-feature-card__label), .home-feature-card--empty > p:not(.home-feature-card__label) { margin: 10px 0 0; font-size: 12px; line-height: 1.6; color: rgb(255 255 255 / 65%); }
+.home-feature-card__bottom { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 20px; }
+.home-feature-card__bottom strong { font-size: 25px; font-weight: 600; letter-spacing: -.04em; }
+.home-feature-card__bottom span { font-size: 22px; }
+.home-feature-card--empty { display: block; min-height: auto; padding: 28px; }
+.home-text-link { display: inline-block; margin-top: 20px; border-bottom: 1px solid rgb(255 255 255 / 70%); padding-bottom: 4px; font-size: 13px; font-weight: 700; }
+.home-arrivals { width: min(100%, 650px); border: 1px solid rgb(255 255 255 / 20%); border-radius: 4px; background: rgb(8 12 17 / 76%); box-shadow: 0 28px 75px rgb(0 0 0 / 18%); backdrop-filter: blur(20px); }
+.home-arrival { display: flex; align-items: center; gap: 18px; min-height: 106px; padding: 12px 20px; border-bottom: 1px solid rgb(255 255 255 / 13%); transition: background .2s ease; }
+.home-arrival:hover { background: rgb(255 255 255 / 9%); }
+.home-arrival__image { position: relative; flex: none; width: 112px; height: 78px; overflow: hidden; border-radius: 2px; background: #202328; }
+.home-arrival__details { display: flex; flex: 1; flex-direction: column; min-width: 0; gap: 5px; }
+.home-arrival__details span { font-size: 10px; font-weight: 700; letter-spacing: .1em; color: rgb(255 255 255 / 54%); }
+.home-arrival__details strong { overflow: hidden; font-size: 15px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.home-arrival__details small { font-size: 11px; color: rgb(255 255 255 / 59%); }
+.home-arrival__price { flex: none; font-size: 18px; font-weight: 600; letter-spacing: -.04em; }
+.home-arrivals__all { display: flex; align-items: center; justify-content: space-between; min-height: 58px; padding: 0 21px; font-size: 13px; font-weight: 700; letter-spacing: .04em; }
+.home-arrivals__all:hover { background: rgb(255 255 255 / 9%); }
+.home-arrivals__notice, .home-arrivals__empty { margin: 0; padding: 20px; font-size: 13px; line-height: 1.6; }
+.home-arrivals__notice { border-bottom: 1px solid rgb(255 255 255 / 13%); color: #f8dca2; }
+.home-arrivals__empty { color: rgb(255 255 255 / 72%); }
+.home-standards { display: grid; width: min(100%, 990px); grid-template-columns: repeat(3, 1fr); gap: 32px; color: #121619; }
+.home-standards > div { border-top: 1px solid rgb(18 22 25 / 55%); padding-top: 15px; }
+.home-standards span { font-size: 11px; font-weight: 700; letter-spacing: .16em; }
+.home-standards h3 { margin: 13px 0 0; font-size: 21px; font-weight: 600; }
+.home-standards p { max-width: 230px; margin: 8px 0 0; font-size: 13px; line-height: 1.7; color: #343a40; }
+
+@media (max-width: 900px) {
+  .home-panel { min-height: 760px; }
+  .home-panel--hero { min-height: max(680px, calc(100svh - 80px)); }
+  .home-panel__image--tesla { background-position: 58% center; }
+  .home-panel__image--porsche { background-position: 58% center; }
+  .home-panel__image--mercedes { background-position: 56% center; }
+  .home-panel__image--bmw { background-position: center bottom; }
+  .home-panel__shade--hero { background: linear-gradient(90deg, rgb(6 12 20 / 80%), rgb(6 12 20 / 25%) 86%), linear-gradient(0deg, rgb(8 13 20 / 35%), transparent 40%); }
+  .home-panel__shade--promise { background: linear-gradient(180deg, rgb(249 246 238 / 96%) 0%, rgb(249 246 238 / 84%) 48%, transparent 84%); }
+  .home-standards { gap: 20px; }
+}
+
+@media (max-width: 640px) {
+  .home-panel { min-height: 740px; }
+  .home-panel--hero { min-height: max(690px, calc(100svh - 80px)); }
+  .home-panel__content { padding-block: 77px 55px; }
+  .home-panel__content--hero { justify-content: flex-start; }
+  .home-panel__content--featured { justify-content: space-between; gap: 40px; }
+  .home-panel__content--latest { justify-content: space-between; gap: 32px; }
+  .home-panel__content--promise { gap: 33px; }
+  .home-panel__image--tesla { background-position: 60% center; }
+  .home-panel__image--porsche { background-position: 57% center; }
+  .home-panel__image--mercedes { background-position: 57% center; }
+  .home-panel__image--bmw { background-position: 50% bottom; }
+  .home-panel__image--audi { background-position: 50% center; }
+  .home-panel__shade--hero { background: linear-gradient(180deg, rgb(7 13 20 / 72%) 0%, rgb(7 13 20 / 18%) 75%, rgb(7 13 20 / 41%) 100%); }
+  .home-panel__shade--featured { background: linear-gradient(180deg, rgb(8 9 12 / 75%) 0%, rgb(8 9 12 / 10%) 52%, rgb(8 9 12 / 75%) 100%); }
+  .home-panel__shade--latest { background: linear-gradient(180deg, rgb(7 10 14 / 82%) 0%, rgb(7 10 14 / 25%) 40%, rgb(7 10 14 / 85%) 100%); }
+  .home-panel__shade--promise { background: linear-gradient(180deg, rgb(249 246 238 / 96%) 0%, rgb(249 246 238 / 84%) 54%, transparent 90%); }
+  .home-panel__shade--closing { background: linear-gradient(180deg, rgb(244 244 242 / 94%) 0%, rgb(244 244 242 / 73%) 51%, transparent 93%); }
+  .home-kicker { margin-bottom: 16px; font-size: 10px; letter-spacing: .16em; }
+  .home-heading, .home-heading--hero { font-size: clamp(36px, 10vw, 48px); letter-spacing: -.06em; }
+  .home-panel--promise .home-heading { font-size: clamp(36px, 10vw, 48px); }
+  .home-description { max-width: 380px; margin-top: 17px; font-size: 14px; line-height: 1.7; }
+  .home-actions { gap: 9px; margin-top: 23px; }
+  .home-button { gap: 15px; min-width: 0; min-height: 47px; padding: 10px 14px; font-size: 12px; }
+  .home-feature-card { width: 100%; min-height: 140px; }
+  .home-feature-card__image { width: 33%; min-height: 140px; }
+  .home-feature-card__body { padding: 15px; }
+  .home-feature-card__body > p:not(.home-feature-card__label) { display: none; }
+  .home-feature-card h3 { font-size: 17px; }
+  .home-feature-card__bottom { margin-top: 13px; }
+  .home-feature-card__bottom strong { font-size: 20px; }
+  .home-feature-card--empty { min-height: auto; }
+  .home-arrivals { width: 100%; }
+  .home-arrival { gap: 11px; min-height: 83px; padding: 9px 10px; }
+  .home-arrival__image { width: 70px; height: 56px; }
+  .home-arrival__details { gap: 3px; }
+  .home-arrival__details span, .home-arrival__details small { font-size: 9px; }
+  .home-arrival__details strong { font-size: 12px; }
+  .home-arrival__price { font-size: 13px; }
+  .home-arrivals__all { min-height: 46px; padding-inline: 12px; font-size: 12px; }
+  .home-standards { grid-template-columns: 1fr; gap: 14px; width: min(100%, 370px); }
+  .home-standards > div { display: grid; grid-template-columns: 38px 1fr; column-gap: 10px; padding-top: 9px; }
+  .home-standards span { grid-row: span 2; padding-top: 4px; }
+  .home-standards h3 { margin: 0; font-size: 15px; }
+  .home-standards p { max-width: 100%; margin-top: 3px; font-size: 11px; line-height: 1.5; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}

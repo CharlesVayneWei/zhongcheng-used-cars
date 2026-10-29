@@ -1,0 +1,12 @@
+export function SearchFilters({ brands, values }: { brands: string[]; values: Record<string, string | undefined> }) {
+  return (
+    <form action="/cars" className="grid gap-3 rounded-[24px] bg-white p-4 shadow-[0_14px_45px_rgba(0,0,0,.05)] sm:grid-cols-2 lg:grid-cols-7">
+      <label className="lg:col-span-2"><span className="mb-1.5 block text-[10px] font-semibold text-[#86868b]">关键词</span><input name="q" defaultValue={values.q} placeholder="品牌、车型或名称" className="h-11 w-full rounded-xl border border-[#d2d2d7] px-3 outline-none transition focus:border-[#1d1d1f]"/></label>
+      <label><span className="mb-1.5 block text-[10px] font-semibold text-[#86868b]">品牌</span><select name="brand" defaultValue={values.brand} className="h-11 w-full rounded-xl border border-[#d2d2d7] bg-white px-3"><option value="">全部品牌</option>{brands.map((brand) => <option key={brand}>{brand}</option>)}</select></label>
+      <label><span className="mb-1.5 block text-[10px] font-semibold text-[#86868b]">价格</span><select name="maxPrice" defaultValue={values.maxPrice} className="h-11 w-full rounded-xl border border-[#d2d2d7] bg-white px-3"><option value="">不限价格</option><option value="150000">15万以内</option><option value="250000">25万以内</option><option value="350000">35万以内</option><option value="500000">50万以内</option></select></label>
+      <label><span className="mb-1.5 block text-[10px] font-semibold text-[#86868b]">上牌年份</span><select name="yearFrom" defaultValue={values.yearFrom} className="h-11 w-full rounded-xl border border-[#d2d2d7] bg-white px-3"><option value="">不限年份</option><option value="2024">2024年起</option><option value="2022">2022年起</option><option value="2020">2020年起</option><option value="2018">2018年起</option></select></label>
+      <label><span className="mb-1.5 block text-[10px] font-semibold text-[#86868b]">里程</span><select name="mileageMax" defaultValue={values.mileageMax} className="h-11 w-full rounded-xl border border-[#d2d2d7] bg-white px-3"><option value="">不限里程</option><option value="30000">3万公里内</option><option value="50000">5万公里内</option><option value="80000">8万公里内</option><option value="120000">12万公里内</option></select></label>
+      <div className="flex items-end gap-2"><button className="h-11 flex-1 rounded-full bg-[#1d1d1f] px-5 text-sm font-semibold text-white hover:bg-[#3a3a3c]">筛选</button><a href="/cars" className="grid h-11 place-items-center rounded-full bg-[#ededf0] px-4 text-sm font-medium">清除</a></div>
+    </form>
+  );
+}
