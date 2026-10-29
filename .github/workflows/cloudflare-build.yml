@@ -1,0 +1,45 @@
+name: Build Cloudflare Worker
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_DEMO_MODE: 'true'
+      NEXT_PUBLIC_SITE_URL: https://zhongcheng-used-cars.charles-vayne-wei.workers.dev
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.25.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Cloudflare Worker
+        run: pnpm run build:worker
+
+      - name: Upload Worker bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: cloudflare-worker
+          path: .open-next
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
