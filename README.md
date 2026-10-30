@@ -32,14 +32,14 @@ tests/                      校验、权限边界、格式化测试
 
 1. 安装依赖：`pnpm install`。
 2. 在 Supabase 创建项目，将 `.env.example` 复制为 `.env.local`，填写 Supabase URL、Anon Key 和站点 URL。
-3. 在 Supabase SQL Editor 执行 [初始迁移](supabase/migrations/202610180001_initial_schema.sql)，或配置 Supabase CLI 后运行：
+3. 在 Supabase SQL Editor 按顺序各执行一次 [初始迁移](supabase/migrations/202610180001_initial_schema.sql) 和 [管理员凭据迁移](supabase/migrations/202610270001_admin_credentials.sql)，或配置 Supabase CLI 后运行：
 
    ```bash
    supabase link --project-ref YOUR_PROJECT_REF
    supabase db push
    ```
 
-4. 依次执行 `supabase/migrations/` 中的迁移，然后创建首个管理员。在 `.env.local` 填写 `SUPABASE_SERVICE_ROLE_KEY`、`ADMIN_EMAIL`、`ADMIN_LOGIN_NAME=weiling`、`ADMIN_PASSWORD=Weiling987100`、`ADMIN_RECOVERY_CODE=858607` 和随机生成的至少 32 位 `ADMIN_RECOVERY_ENCRYPTION_KEY`（不能保留示例占位值），运行：
+4. 迁移完成后创建首个管理员。在 `.env.local` 填写 `SUPABASE_SERVICE_ROLE_KEY`、`ADMIN_EMAIL`、`ADMIN_LOGIN_NAME`、`ADMIN_PASSWORD`、`ADMIN_RECOVERY_CODE` 和随机生成的至少 32 位 `ADMIN_RECOVERY_ENCRYPTION_KEY`（不能保留示例占位值），运行：
 
    ```bash
    pnpm admin:create
@@ -104,6 +104,13 @@ pnpm build
 7. 重启 Next.js 与浏览器，确认数据和 Storage 图片仍存在。
 
 ## 部署
+
+### Vercel + 新 Supabase 项目
+
+1. 在新 Supabase 项目的 SQL Editor 中，按文件名顺序**完整执行一次** `supabase/migrations/202610180001_initial_schema.sql`，再执行 `supabase/migrations/202610270001_admin_credentials.sql`。也可以在安装 Supabase CLI 后执行 `supabase link --project-ref <项目 ID>` 和 `supabase db push`，不要对同一个数据库重复使用 SQL Editor 和 CLI 执行同一迁移。第一份迁移建立车辆、图片、设置、管理员资料、审计及清理队列表与 `car-images` Storage bucket，并启用 RLS；第二份迁移建立管理员登录名与找回密码所需结构。
+2. 在 Vercel 项目 **Settings → Environment Variables** 为 Production（需要预览时也为 Preview）设置代码实际读取的 `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`、`NEXT_PUBLIC_DEMO_MODE=false`、`NEXT_PUBLIC_SITE_URL=https://<正式域名>`。`NEXT_PUBLIC_SUPABASE_ANON_KEY` 可填 Supabase 的旧版 anon key 或新的 publishable key；变量**名称**仍须与代码一致。管理员找回功能还需要服务端变量 `ADMIN_RECOVERY_CODE` 与 `ADMIN_RECOVERY_ENCRYPTION_KEY`。
+3. 检查 Vercel 的 Supabase 集成变量名称：如果连接资源时填写了自定义前缀 `SUPABASE_`，集成变量可能变成 `SUPABASE_NEXT_PUBLIC_SUPABASE_URL`、`SUPABASE_NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 等；这些名字不会被当前代码读取。尤其 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 也不等于本项目读取的 `NEXT_PUBLIC_SUPABASE_ANON_KEY`。请在 Vercel 中确认**实际变量名**，并补齐上述精确名称；不要把数据库密码或 secret/service-role key 放入 `NEXT_PUBLIC_` 变量。修改环境变量后重新部署，旧部署不会自动更新。
+4. sitemap 在请求时查询真实的已发布/已售车辆，因此新数据库没有表时不再导致 `npm run build` 失败。迁移未执行时，公开页面和 sitemap 仍会报告真实数据库错误；完成迁移后才能正常使用，不要以演示模式替代初始化。
 
 项目通过 GitHub + Cloudflare Workers 持续部署，使用 OpenNext 适配完整的 Next.js 服务端功能：
 
