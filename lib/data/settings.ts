@@ -1,6 +1,8 @@
-import { createPublicClient } from '@/lib/supabase/public';
+import 'server-only';
+
+import { hasDatabaseConfig, isDemoMode } from '@/lib/config';
+import { query } from '@/lib/db/pool';
 import { demoSettings } from '@/lib/demo-data';
-import { isDemoMode } from '@/lib/config';
 import type { SiteSettings } from '@/lib/types';
 
 const fallback: SiteSettings = {
@@ -9,8 +11,9 @@ const fallback: SiteSettings = {
 
 export async function getSiteSettings(): Promise<SiteSettings> {
   if (isDemoMode) return demoSettings;
-  const client = createPublicClient();
-  if (!client) return fallback;
-  const { data } = await client.from('site_settings').select('site_name, tagline, consultation_phone, consultation_wechat').eq('id', true).maybeSingle();
-  return data ? data as SiteSettings : fallback;
+  if (!hasDatabaseConfig()) return fallback;
+  const result = await query<SiteSettings>(
+    'select site_name, tagline, consultation_phone, consultation_wechat from site_settings where id = true',
+  );
+  return result.rows[0] ?? fallback;
 }

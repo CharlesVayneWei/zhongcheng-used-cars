@@ -1,48 +1,17 @@
-import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { getSupabasePublicConfig } from '@/lib/config';
+import { ADMIN_SESSION_COOKIE } from '@/lib/auth/constants';
 
-export async function proxy(request: NextRequest) {
-  const config = getSupabasePublicConfig();
-  let response = NextResponse.next({ request });
-  if (!config) {
-    if (request.nextUrl.pathname.startsWith('/admin/') && !['/admin/login', '/admin/forgot-password'].includes(request.nextUrl.pathname)) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/admin/login';
-      url.searchParams.set('error', 'config');
-      return NextResponse.redirect(url);
-    }
-    return response;
-  }
+const PUBLIC_ADMIN_PATHS = new Set(['/admin/login', '/admin/forgot-password']);
 
-  const client = createServerClient(config.url, config.anonKey, {
-    cookies: {
-      getAll: () => request.cookies.getAll(),
-      setAll: (cookiesToSet) => {
-        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        response = NextResponse.next({ request });
-        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
-      },
-    },
-  });
-  const { data: { user } } = await client.auth.getUser();
+export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  if (path.startsWith('/admin/') && !['/admin/login', '/admin/forgot-password'].includes(path)) {
-    let allowed = false;
-    if (user) {
-      const { data } = await client.from('admin_profiles').select('user_id').eq('user_id', user.id).maybeSingle();
-      allowed = Boolean(data);
-    }
-    if (!allowed) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/admin/login';
-      url.search = '';
-      return NextResponse.redirect(url);
-    }
+  if (path.startsWith('/admin/') && !PUBLIC_ADMIN_PATHS.has(path) && !request.cookies.get(ADMIN_SESSION_COOKIE)?.value) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/admin/login';
+    url.search = '';
+    return NextResponse.redirect(url);
   }
-  return response;
+  return NextResponse.next();
 }
 
-export const config = {
-  matcher: ['/admin/:path*'],
-};
+export const config = { matcher: ['/admin/:path*'] };

@@ -5,34 +5,35 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "build:worker": "opennextjs-cloudflare build",
-    "start": "next start",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "build": "next build && node scripts/prepare-standalone.mjs",
+    "start": "node .next/standalone/server.js",
+    "typecheck": "tsc --noEmit --incremental false",
     "test": "vitest run",
     "test:watch": "vitest",
-    "admin:create": "node --env-file=.env.local scripts/create-admin.mjs"
+    "test:integration": "vitest run tests/integration/postgres.test.ts",
+    "db:migrate": "node --env-file-if-exists=.env.local scripts/db-migrate.mjs",
+    "admin:create": "node --env-file-if-exists=.env.local scripts/create-admin.mjs",
+    "admin:reset-token": "node --env-file-if-exists=.env.local scripts/create-password-reset.mjs",
+    "storage:cleanup": "node --env-file-if-exists=.env.local scripts/cleanup-storage.mjs",
+    "migrate:supabase": "node --env-file-if-exists=.env.migration scripts/migrate-supabase-data.mjs"
   },
   "dependencies": {
-    "@opennextjs/cloudflare": "^1.20.14",
-    "@supabase/ssr": "^0.12.7",
-    "@supabase/supabase-js": "^2.80.0",
+    "bcryptjs": "^3.0.3",
     "next": "16.4.2",
+    "pg": "^8.23.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "sharp": "^0.35.5",
     "zod": "^4.1.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.0",
     "@types/node": "^24.10.0",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.0",
-    "wrangler": "^4.155.0"
+    "vitest": "^4.1.0"
   }
 }

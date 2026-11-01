@@ -1,0 +1,59 @@
+name: Validate self-hosted Next.js
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: zhongcheng_test
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: zhongcheng_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U zhongcheng_test -d zhongcheng_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      TEST_DATABASE_URL: postgresql://zhongcheng_test:ci-only-password@127.0.0.1:5432/zhongcheng_test
+      NEXT_PUBLIC_DEMO_MODE: 'true'
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests including PostgreSQL integration
+        run: pnpm test
+
+      - name: Type-check
+        run: pnpm typecheck
+
+      - name: Build standalone production server
+        run: pnpm build

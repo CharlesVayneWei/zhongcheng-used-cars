@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { decryptAdminPassword, encryptAdminPassword, normalizeLoginName, passwordsMatch, validLoginName, validRecoveryCode } from '../lib/security/admin-credentials';
+import {
+  hashAdminPassword,
+  normalizeLoginName,
+  passwordsMatch,
+  validLoginName,
+  validPassword,
+  verifyAdminPassword,
+} from '../lib/security/admin-credentials';
+import { createOpaqueToken, hashToken, safeEqual } from '../lib/security/tokens';
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -11,28 +19,29 @@ describe('管理员凭据', () => {
     expect(validLoginName('name@example.com')).toBe(false);
   });
 
-  it('第二次密码不一致时不会通过', () => {
-    expect(passwordsMatch('Weiling987100', 'Weiling987101')).toBe(false);
+  it('要求强密码且两次输入一致', () => {
+    expect(validPassword('Short123')).toBe(false);
+    expect(validPassword('alllowercase123456')).toBe(false);
+    expect(validPassword('StrongPassword123')).toBe(true);
+    expect(passwordsMatch('StrongPassword123', 'StrongPassword124')).toBe(false);
   });
 
-  it('加密副本需密钥，篡改后不能解密', () => {
-    vi.stubEnv('ADMIN_RECOVERY_ENCRYPTION_KEY', '');
-    expect(encryptAdminPassword('Weiling987100')).toBeNull();
-    vi.stubEnv('ADMIN_RECOVERY_ENCRYPTION_KEY', 'long-independent-server-secret-1234567890');
-    const ciphertext = encryptAdminPassword('Weiling987100');
-    expect(ciphertext).toBeTruthy();
-    expect(ciphertext).not.toContain('Weiling987100');
-    expect(decryptAdminPassword(ciphertext!)).toBe('Weiling987100');
-    const [iv, tag, content] = ciphertext!.split('.');
-    expect(decryptAdminPassword(`${iv}.${tag}.${content[0] === 'A' ? 'B' : 'A'}${content.slice(1)}`)).toBeNull();
-    vi.stubEnv('ADMIN_RECOVERY_ENCRYPTION_KEY', 'different-independent-server-secret-1234');
-    expect(decryptAdminPassword(ciphertext!)).toBeNull();
+  it('只保存不可逆 bcrypt 哈希并能验证密码', async () => {
+    vi.stubEnv('PASSWORD_BCRYPT_ROUNDS', '10');
+    const password = 'StrongPassword123';
+    const hashed = await hashAdminPassword(password);
+    expect(hashed).not.toContain(password);
+    expect(await verifyAdminPassword(password, hashed)).toBe(true);
+    expect(await verifyAdminPassword('WrongPassword123', hashed)).toBe(false);
   });
 
-  it('找回口令只接受完整匹配', () => {
-    vi.stubEnv('ADMIN_RECOVERY_CODE', '858607');
-    expect(validRecoveryCode('858607')).toBe(true);
-    expect(validRecoveryCode('85860')).toBe(false);
-    expect(validRecoveryCode('858608')).toBe(false);
+  it('会话和重置令牌使用高熵随机值与 SHA-256 哈希', () => {
+    const token = createOpaqueToken();
+    const digest = hashToken(token);
+    expect(token.length).toBeGreaterThanOrEqual(40);
+    expect(digest).toMatch(/^[0-9a-f]{64}$/);
+    expect(digest).not.toContain(token);
+    expect(safeEqual(digest, hashToken(token))).toBe(true);
+    expect(safeEqual(digest, hashToken(`${token}x`))).toBe(false);
   });
 });

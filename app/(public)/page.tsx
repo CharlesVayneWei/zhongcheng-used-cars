@@ -71,7 +71,7 @@ export default async function HomePage() {
             <p className="home-description">看见实车，了解真实信息。每辆车的年份、里程与价格，都清楚呈现。</p>
           </div>
           <div className="home-arrivals">
-            {!source.configured && !source.demo && <p className="home-arrivals__notice">数据库尚未配置，请在本地配置 Supabase 项目变量。</p>}
+            {!source.configured && !source.demo && <p className="home-arrivals__notice">数据库尚未配置，请设置服务端 DATABASE_URL。</p>}
             {cars.length ? cars.slice(0, 3).map((car) => (
               <Link key={car.id} href={`/cars/${car.id}`} className="home-arrival group">
                 <div className="home-arrival__image"><CarVisual car={car} className="transition duration-500 group-hover:scale-105" /></div>
