@@ -67,7 +67,7 @@ export function ImageManager({ carId, images }: { carId: string; images: CarImag
   }
 
   return <section className="rounded-[24px] border border-[#d2d2d7] bg-white p-5 sm:p-7">
-    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><p className="eyebrow">Vehicle images</p><h2 className="mt-1 text-xl font-semibold">车辆图片</h2><p className="mt-2 text-xs text-[#6e6e73]">浏览器会压缩为 WebP；单张不超过 5 MB。可调整顺序并设置封面。</p></div><span className="text-xs font-semibold text-[#6e6e73]">{images.length} 张</span></div>
+    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><p className="eyebrow">Vehicle images</p><h2 className="mt-1 text-xl font-semibold">车辆图片</h2><p className="mt-2 text-xs text-[#6e6e73]">浏览器先压缩，服务器会再次校验并转换为 WebP；单张不超过 5 MB。可调整顺序并设置封面。</p></div><span className="text-xs font-semibold text-[#6e6e73]">{images.length} 张</span></div>
     {(clientError || state.message) && <div className={`mt-5 rounded-xl px-4 py-3 text-sm ${state.ok && !clientError ? 'bg-[#e1efe9] text-[#1c624f]' : 'bg-[#f7e5e1] text-[#983f34]'}`}>{clientError || state.message}</div>}
     <form onSubmit={handleUpload} className="mt-5 grid gap-3 rounded-xl border border-dashed border-[#bfc8c3] bg-[#f8faf8] p-4 sm:grid-cols-[1fr_auto] sm:items-end">
       <label className="grid gap-2 text-sm font-bold">选择车辆图片<input type="file" name="image" accept="image/jpeg,image/png,image/webp" multiple onChange={(event) => setSelectedFiles(Array.from(event.target.files ?? []))} className="block w-full rounded-xl border border-[#d8dedb] bg-white p-2 text-xs"/></label>

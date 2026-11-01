@@ -1,24 +1,11 @@
-import { createPublicClient } from '@/lib/supabase/public';
+import 'server-only';
+
+import { query } from '@/lib/db/pool';
 import { demoCars } from '@/lib/demo-data';
-import { hasSupabaseConfig, isDemoMode } from '@/lib/config';
-import type { Car, CarImage, CarSearchFilters, CarSearchResult } from '@/lib/types';
-
-function publicImageUrl(storagePath: string) {
-  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!base) return undefined;
-  const encoded = storagePath.split('/').map(encodeURIComponent).join('/');
-  return `${base}/storage/v1/object/public/car-images/${encoded}`;
-}
-
-function normalizeCar(row: Record<string, unknown>): Car {
-  const images = ((row.car_images as Record<string, unknown>[] | null) ?? [])
-    .map((image) => ({
-      ...image,
-      public_url: publicImageUrl(String(image.storage_path)),
-    } as CarImage))
-    .sort((a, b) => a.sort_order - b.sort_order);
-  return { ...row, car_images: images } as unknown as Car;
-}
+import { hasDatabaseConfig, isDemoMode } from '@/lib/config';
+import { normalizeCarRow } from '@/lib/data/normalize';
+import { validUuid } from '@/lib/validation/id';
+import type { Car, CarSearchFilters, CarSearchResult } from '@/lib/types';
 
 function filterDemoCars(filters: CarSearchFilters): CarSearchResult {
   const q = filters.q?.toLocaleLowerCase('zh-CN');
@@ -45,53 +32,61 @@ function filterDemoCars(filters: CarSearchFilters): CarSearchResult {
   return { cars: cars.slice((page - 1) * pageSize, page * pageSize), count: cars.length, page, pageSize };
 }
 
+function likePattern(value: string) {
+  return `%${value.slice(0, 80).replace(/[\\%_]/g, '\\$&')}%`;
+}
+
 export async function searchPublicCars(filters: CarSearchFilters = {}): Promise<CarSearchResult> {
   if (isDemoMode) return filterDemoCars(filters);
-  const client = createPublicClient();
   const page = Math.max(filters.page ?? 1, 1);
   const pageSize = Math.min(Math.max(filters.pageSize ?? 12, 1), 48);
-  if (!client) return { cars: [], count: 0, page, pageSize };
+  if (!hasDatabaseConfig()) return { cars: [], count: 0, page, pageSize };
 
-  let query = client
-    .from('cars')
-    .select('*, car_images(*)', { count: 'exact' })
-    .in('status', ['published', 'sold'])
-    .order('status', { ascending: true });
-  if (filters.q) {
-    const keyword = filters.q.slice(0, 80).replace(/[,()%]/g, ' ').trim();
-    if (keyword) query = query.or(`title.ilike.%${keyword}%,brand.ilike.%${keyword}%,model.ilike.%${keyword}%`);
-  }
-  if (filters.brand) query = query.eq('brand', filters.brand.slice(0, 80));
-  if (filters.minPrice != null) query = query.gte('cash_price_yuan', filters.minPrice);
-  if (filters.maxPrice != null) query = query.lte('cash_price_yuan', filters.maxPrice);
-  if (filters.yearFrom != null) query = query.gte('registration_year', filters.yearFrom);
-  if (filters.yearTo != null) query = query.lte('registration_year', filters.yearTo);
-  if (filters.mileageMax != null) query = query.lte('mileage_km', filters.mileageMax);
+  const values: unknown[] = [];
+  const where = [`c.status in ('published', 'sold')`];
+  const add = (sql: string, value: unknown) => {
+    values.push(value);
+    where.push(sql.replace('?', `$${values.length}`));
+  };
+  if (filters.q?.trim()) add(`concat_ws(' ', c.title, c.brand, c.model) ilike ? escape '\\'`, likePattern(filters.q.trim()));
+  if (filters.brand) add('c.brand = ?', filters.brand.slice(0, 80));
+  if (filters.minPrice != null) add('c.cash_price_yuan >= ?', filters.minPrice);
+  if (filters.maxPrice != null) add('c.cash_price_yuan <= ?', filters.maxPrice);
+  if (filters.yearFrom != null) add('c.registration_year >= ?', filters.yearFrom);
+  if (filters.yearTo != null) add('c.registration_year <= ?', filters.yearTo);
+  if (filters.mileageMax != null) add('c.mileage_km <= ?', filters.mileageMax);
 
-  if (filters.sort === 'price_asc') query = query.order('cash_price_yuan', { ascending: true, nullsFirst: false });
-  else if (filters.sort === 'price_desc') query = query.order('cash_price_yuan', { ascending: false, nullsFirst: false });
-  else query = query.order('published_at', { ascending: false, nullsFirst: false });
-
-  const from = (page - 1) * pageSize;
-  const { data, count, error } = await query.range(from, from + pageSize - 1);
-  if (error) throw new Error(`读取车辆列表失败：${error.message}`);
-  const cars = (data ?? []).map((row) => normalizeCar(row as Record<string, unknown>))
-    .sort((a, b) => Number(a.status === 'sold') - Number(b.status === 'sold'));
-  return { cars, count: count ?? 0, page, pageSize };
+  const order = filters.sort === 'price_asc'
+    ? 'c.status = \'sold\', c.cash_price_yuan asc nulls last'
+    : filters.sort === 'price_desc'
+      ? 'c.status = \'sold\', c.cash_price_yuan desc nulls last'
+      : 'c.status = \'sold\', c.published_at desc nulls last';
+  values.push(pageSize, (page - 1) * pageSize);
+  const result = await query<Record<string, unknown> & { total_count: number }>(
+    `select c.*, count(*) over() as total_count,
+       coalesce((select jsonb_agg(to_jsonb(i) order by i.sort_order) from car_images i where i.car_id = c.id), '[]'::jsonb) as car_images
+       from cars c where ${where.join(' and ')}
+       order by ${order} limit $${values.length - 1} offset $${values.length}`,
+    values,
+  );
+  return {
+    cars: result.rows.map(normalizeCarRow),
+    count: Number(result.rows[0]?.total_count ?? 0),
+    page,
+    pageSize,
+  };
 }
 
 export async function getPublicCar(id: string): Promise<Car | null> {
   if (isDemoMode) return demoCars.find((car) => car.id === id && ['published', 'sold'].includes(car.status)) ?? null;
-  const client = createPublicClient();
-  if (!client) return null;
-  const { data, error } = await client
-    .from('cars')
-    .select('*, car_images(*)')
-    .eq('id', id)
-    .in('status', ['published', 'sold'])
-    .maybeSingle();
-  if (error) throw new Error(`读取车辆详情失败：${error.message}`);
-  return data ? normalizeCar(data as Record<string, unknown>) : null;
+  if (!hasDatabaseConfig() || !validUuid(id)) return null;
+  const result = await query<Record<string, unknown>>(
+    `select c.*,
+       coalesce((select jsonb_agg(to_jsonb(i) order by i.sort_order) from car_images i where i.car_id = c.id), '[]'::jsonb) as car_images
+       from cars c where c.id = $1 and c.status in ('published', 'sold')`,
+    [id],
+  );
+  return result.rows[0] ? normalizeCarRow(result.rows[0]) : null;
 }
 
 export async function getLatestCars(limit = 6) {
@@ -101,13 +96,13 @@ export async function getLatestCars(limit = 6) {
 
 export async function getPublicBrands() {
   if (isDemoMode) return [...new Set(demoCars.map((car) => car.brand).filter(Boolean))] as string[];
-  const client = createPublicClient();
-  if (!client) return [];
-  const { data, error } = await client.from('cars').select('brand').in('status', ['published', 'sold']).not('brand', 'is', null).limit(500);
-  if (error) throw new Error(`读取品牌失败：${error.message}`);
-  return [...new Set((data ?? []).map((row) => String(row.brand)))].sort((a, b) => a.localeCompare(b, 'zh-CN'));
+  if (!hasDatabaseConfig()) return [];
+  const result = await query<{ brand: string }>(
+    `select distinct brand from cars where status in ('published', 'sold') and brand is not null order by brand limit 500`,
+  );
+  return result.rows.map((row) => row.brand);
 }
 
 export function dataSourceState() {
-  return { demo: isDemoMode, configured: hasSupabaseConfig() };
+  return { demo: isDemoMode, configured: hasDatabaseConfig() };
 }

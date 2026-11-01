@@ -14,7 +14,7 @@ export function AccountForm({ loginName }: { loginName: string }) {
     <label className="grid gap-2 text-sm font-semibold text-[#3a3a3c]">登录账号<input className={inputClass} type="text" name="login_name" autoComplete="username" defaultValue={loginName} required/></label>
     <div className="border-t border-[#ececef] pt-5"><p className="text-sm font-semibold">修改前验证</p><p className="mt-1 text-xs leading-5 text-[#6e6e73]">每次修改都需要输入当前密码。</p></div>
     <label className="grid gap-2 text-sm font-semibold text-[#3a3a3c]">当前密码<input className={inputClass} type="password" name="current_password" autoComplete="current-password" required/></label>
-    <div className="border-t border-[#ececef] pt-5"><p className="text-sm font-semibold">设置新密码</p><p className="mt-1 text-xs leading-5 text-[#6e6e73]">只改账号可留空；修改密码时需输入两次，且至少 12 位。</p></div>
+    <div className="border-t border-[#ececef] pt-5"><p className="text-sm font-semibold">设置新密码</p><p className="mt-1 text-xs leading-5 text-[#6e6e73]">只改账号可留空；新密码至少 12 位，并需包含大写字母、小写字母和数字。</p></div>
     <label className="grid gap-2 text-sm font-semibold text-[#3a3a3c]">新密码<input className={inputClass} type="password" name="new_password" autoComplete="new-password" minLength={12}/></label>
     <label className="grid gap-2 text-sm font-semibold text-[#3a3a3c]">再次输入新密码<input className={inputClass} type="password" name="confirm_password" autoComplete="new-password" minLength={12}/></label>
     <button disabled={pending} className="mt-2 h-12 rounded-full bg-[#1d1d1f] font-semibold text-white disabled:opacity-60">{pending ? '正在验证并保存…' : '验证并保存修改'}</button>

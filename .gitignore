@@ -12,3 +12,5 @@ output/
 .wrangler/
 .dev.vars
 .dev.vars.*
+.data/
+.env.migration

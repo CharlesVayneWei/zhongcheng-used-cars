@@ -8,7 +8,7 @@ export default async function PublicLayout({ children }: { children: React.React
   const settings = await getSiteSettings();
   return <ContactDialogProvider siteName={settings.site_name} phone={settings.consultation_phone} wechat={settings.consultation_wechat}>
   <div className="min-h-screen">
-    {isDemoMode && <div className="border-b border-white/10 bg-[#050505] px-4 py-2 text-center text-[10px] font-medium tracking-[.06em] text-white/55">演示模式 · 当前车辆为界面示例，配置 Supabase 后请关闭 NEXT_PUBLIC_DEMO_MODE</div>}
+    {isDemoMode && <div className="border-b border-white/10 bg-[#050505] px-4 py-2 text-center text-[10px] font-medium tracking-[.06em] text-white/55">演示模式 · 当前车辆为界面示例，配置 PostgreSQL 后请关闭 NEXT_PUBLIC_DEMO_MODE</div>}
     <header className="sticky top-0 z-40 border-b border-white/10 bg-black/94 backdrop-blur-xl">
       <div className="page-width flex min-h-20 items-center justify-between gap-4">
         <Logo name={settings.site_name}/>
