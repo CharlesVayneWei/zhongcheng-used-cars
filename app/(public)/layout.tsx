@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { ContactDialogProvider, ContactDialogTrigger } from '@/components/contact/contact-dialog';
 import { Logo } from '@/components/ui/logo';
@@ -26,7 +27,30 @@ export default async function PublicLayout({ children }: { children: React.React
         <div><p className="text-[10px] font-bold uppercase tracking-[.2em] text-white/35">Explore</p><div className="mt-4 grid gap-3 text-sm text-white/65"><Link href="/cars">全部车源</Link><Link href="/cars?sort=latest">最新发布</Link><Link href="/admin/login">管理员入口</Link></div></div>
         <div><p className="text-[10px] font-bold uppercase tracking-[.2em] text-white/35">Contact</p><div className="mt-4 grid gap-3 text-sm text-white/65"><span>电话：{settings.consultation_phone || '待配置'}</span><span>微信：{settings.consultation_wechat || '待配置'}</span></div></div>
       </div>
-      <div className="border-t border-white/10 py-5 text-center text-[11px] text-white/45">© {new Date().getFullYear()} {settings.site_name} · 车辆展示平台</div>
+      <div className="border-t border-white/10 py-5 text-[11px] text-white/45">
+        <div className="page-width grid justify-items-center gap-2 text-center">
+          <p>© {new Date().getFullYear()} {settings.site_name} · 车辆展示平台</p>
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+            <a
+              className="transition hover:text-white"
+              href="https://beian.miit.gov.cn/"
+              rel="noreferrer"
+              target="_blank"
+            >
+              苏ICP备2026087237号
+            </a>
+            <a
+              className="inline-flex items-center gap-1.5 transition hover:text-white"
+              href="https://beian.mps.gov.cn/#/query/webSearch?code=32118102001958"
+              rel="noreferrer"
+              target="_blank"
+            >
+              <Image alt="" height={20} src="/备案图标.png" width={18} />
+              <span>苏公网安备32118102001958号</span>
+            </a>
+          </div>
+        </div>
+      </div>
     </footer>
   </div>
   </ContactDialogProvider>;
