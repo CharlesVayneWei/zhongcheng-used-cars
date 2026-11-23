@@ -2,9 +2,9 @@
 
 ## 已核实的架构
 
-仓库使用 Next.js 16 standalone、Node.js 24、pnpm 11.25、PostgreSQL 16，图片由 `UPLOAD_DIR` 指向服务器外部目录。阿里云服务器的 `zhongcheng-used-cars.service` 当前为 `active`，`User=zhongcheng`，`ExecStart=/usr/bin/node server.js`，`WorkingDirectory=/var/www/zhongcheng-used-cars/.next/standalone`，环境文件为 `/etc/zhongcheng-used-cars.env`，并设置了 `ProtectSystem=strict`。这与最初描述的 PM2 不一致；自动部署按实际运行的 systemd 服务设计，不安装或切换到 PM2。
+仓库使用 Next.js 16 standalone、Node.js 24、pnpm 11.25、PostgreSQL 16。阿里云服务器的 `zhongcheng-used-cars.service` 当前为 `active`，`User=zhongcheng`，`ExecStart=/usr/bin/node server.js`，`WorkingDirectory=/var/www/zhongcheng-used-cars/.next/standalone`，环境文件为 `/etc/zhongcheng-used-cars.env`，并设置了 `ProtectSystem=strict`。服务器已核实 `x86_64`、`/usr/bin/node v24.22.2`、`PORT=3000`、`UPLOAD_DIR=/var/lib/zhongcheng/uploads`；现有 `ReadWritePaths` 包括上传目录和整个旧应用目录。这与最初描述的 PM2 不一致；自动部署按实际运行的 systemd 服务设计，不安装或切换到 PM2。
 
-目前尚未核实服务器 CPU 架构、`/usr/bin/node` 版本、实际监听端口、公开域名、目录权限和备份情况。仓库及服务器尚未完成首次部署授权。**本 PR 保持草稿；不要在核实与用户确认首次切换之前启用 `PRODUCTION_DEPLOY_ENABLED`。**
+目前尚未核实公开域名、目录权限和备份情况。服务器环境文件的 `NEXT_PUBLIC_SITE_URL` 当前为 `http://localhost:3000`；发布构建所需的 `PRODUCTION_SITE_URL` 必须设置为核实后的真实 HTTPS 域名，并另行评估是否需要修正服务器环境文件。仓库及服务器尚未完成首次部署授权。**本 PR 保持草稿；不要在核实与用户确认首次切换之前启用 `PRODUCTION_DEPLOY_ENABLED`。**
 
 ## 发布流程
 
@@ -21,14 +21,11 @@
 以下命令在**阿里云服务器 SSH 终端**执行，均为只读，不会影响正在运行的网站，也不会输出环境变量值。请只发送命令结果，不要发送环境文件正文、密码或私钥。
 
 ```bash
-uname -m
-/usr/bin/node --version
-systemctl show zhongcheng-used-cars -p EnvironmentFiles -p ReadWritePaths -p Group -p ProtectSystem -p WorkingDirectory -p ExecStart
 stat -c '%U:%G %a %n' /var/www/zhongcheng-used-cars /var/www/zhongcheng-used-cars/.next/standalone /etc/zhongcheng-used-cars.env /var/lib/zhongcheng/uploads
-ss -ltnp | grep -E ':(3000|3001|8080)\b' || true
+ss -ltnp | grep ':3000' || true
 ```
 
-确认方式：应看到 Linux `x86_64`、`/usr/bin/node` 主版本 24、现有 unit 的路径及权限，并找到实际回源端口。上方端口列表只是探测常见值；若没有结果，应从当前 Nginx 配置与服务环境文件由服务器管理员核对监听端口，**不要在聊天中粘贴环境文件的值**。还需从阿里云控制台核对剩余磁盘、SSH 地址及主机密钥指纹，并确认已有数据库和图片备份可恢复。
+确认方式：应看到现有目录所有者及权限和本机 3000 端口监听。若没有监听结果，应由服务器管理员核对 Nginx 回源配置。还需从阿里云控制台核对剩余磁盘、SSH 地址及主机密钥指纹，并确认已有数据库和图片备份可恢复。
 
 完成只读检查后，才能制定并由用户确认首次生产转接的**完整命令**：
 
