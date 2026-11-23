@@ -1,6 +1,6 @@
 # 众成二手车 GitHub Actions 部署
 
-本文件针对仓库当前的 Next.js 16 standalone、Node.js 24、pnpm 11.25、PostgreSQL 16 和服务器外的图片目录。`docs/DEPLOYMENT_UBUNTU.md` 是使用 systemd 的部署示例；线上实际使用 PM2，首次接管前必须以服务器检查结果为准。本仓库尚未配置或验证阿里云服务器。
+本文件针对仓库当前的 Next.js 16 standalone、Node.js 24、pnpm 11.25、PostgreSQL 16 和服务器外的图片目录。`docs/DEPLOYMENT_UBUNTU.md` 是使用 systemd 的部署示例。用户最初描述线上使用 PM2，但服务器上 `zhongcheng-used-cars` systemd 服务返回 `active`，而当前终端未找到 PM2；实际启动方式仍须核实。当前部署脚本只支持经核实的 PM2 接管，并会在上述 systemd 服务仍活动时拒绝切换。本仓库尚未配置或验证阿里云服务器。
 
 ## 发布流程
 
@@ -39,7 +39,7 @@ systemctl is-active zhongcheng-used-cars 2>/dev/null || true
 以下条件目前**均未验证**。得到上述只读信息后，才应给出适合该服务器的完整一次性创建命令；不要直接执行仓库里旧的 systemd 示例：
 
 - 建立独立的普通部署账号和专用 SSH 密钥。该账号只能写部署版本目录、管理自己的 PM2 进程，并读取现有生产环境文件及外部上传目录所需权限；不要授予 root 或数据库管理员权限。私钥只放 GitHub `production` Environment Secret，公钥只加入服务器部署账号的 `authorized_keys`。
-- 规划独立部署根目录，含 `incoming/`、`releases/`、指向已知可恢复版本的 `current` 软链接和仅由管理员创建的 `.auto-deploy-enabled` 标记。PM2 进程必须由此部署账号运行，且其 `pm_exec_path` 必须精确为 `<部署根目录>/current/server.js`，`pm_cwd` 必须精确为 `<部署根目录>/current`。脚本会核对这些条件，不符合就拒绝发布。现有线上进程的转接会影响服务，因此必须在用户确认的维护窗口实施。
+- 先核实活动 systemd 服务的 `ExecStart`、`WorkingDirectory` 和账号。如果它才是实际网站进程，应设计兼容该服务的发布方式并修改此 PR，而不应为了使用当前 PM2 脚本自行停掉它。若确认由 PM2 管理，再规划独立部署根目录，含 `incoming/`、`releases/`、指向已知可恢复版本的 `current` 软链接和仅由管理员创建的 `.auto-deploy-enabled` 标记。PM2 进程必须由专用部署账号运行，且其 `pm_exec_path` 必须精确为 `<部署根目录>/current/server.js`，`pm_cwd` 必须精确为 `<部署根目录>/current`。脚本会核对这些条件，不符合就拒绝发布。现有线上进程的转接会影响服务，因此必须在用户确认的维护窗口实施。
 - 现有生产环境文件留在版本目录外，能由部署账号读取；必须包含 `NODE_ENV=production`、`HOSTNAME=127.0.0.1`、实际 `PORT`、`DATABASE_URL`、`UPLOAD_DIR`、`NEXT_PUBLIC_DEMO_MODE=false`、`NEXT_PUBLIC_SITE_URL`。`UPLOAD_DIR` 必须仍指向部署根目录外的现有持久化图片目录。脚本不会创建、覆盖或删除环境文件、图片或数据库，也不会执行 `pnpm db:migrate`。
 - 在切换前做并核对数据库与图片备份。保留旧版本目录，确认 PM2 的开机恢复方式、Nginx 回源路径和站点访问正常。生产变更需先在测试实例演练；首次切换只有在用户确认后进行。
 

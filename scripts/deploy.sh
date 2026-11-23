@@ -17,6 +17,10 @@ expected_site_url="${7:?site URL is required}"
 
 root="$(realpath -e -- "$root_input")"
 [[ "$root" == "$root_input" && "$root" != / ]] || { echo 'Deployment root must be a canonical directory' >&2; exit 1; }
+if command -v systemctl >/dev/null && systemctl is-active --quiet zhongcheng-used-cars 2>/dev/null; then
+  echo 'The existing systemd website service is active; refusing to switch a PM2 release' >&2
+  exit 1
+fi
 [[ -f "$root/.auto-deploy-enabled" && -d "$root/releases" && -d "$root/incoming" && -L "$root/current" ]] || { echo 'Server has not been prepared for automatic deployment' >&2; exit 1; }
 [[ -r "$env_file" && -f "$env_file" ]] || { echo 'Runtime environment file is unavailable' >&2; exit 1; }
 
