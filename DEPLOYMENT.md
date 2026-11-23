@@ -4,7 +4,7 @@
 
 仓库使用 Next.js 16 standalone、Node.js 24、pnpm 11.25、PostgreSQL 16。阿里云服务器的 `zhongcheng-used-cars.service` 当前为 `active`，`User=zhongcheng`，`ExecStart=/usr/bin/node server.js`，`WorkingDirectory=/var/www/zhongcheng-used-cars/.next/standalone`，环境文件为 `/etc/zhongcheng-used-cars.env`，并设置了 `ProtectSystem=strict`。服务器已核实 `x86_64`、`/usr/bin/node v24.22.2`、`PORT=3000`、`UPLOAD_DIR=/var/lib/zhongcheng/uploads`；现有 `ReadWritePaths` 包括上传目录和整个旧应用目录。这与最初描述的 PM2 不一致；自动部署按实际运行的 systemd 服务设计，不安装或切换到 PM2。
 
-目前尚未核实公开域名、目录权限和备份情况。服务器环境文件的 `NEXT_PUBLIC_SITE_URL` 当前为 `http://localhost:3000`；发布构建所需的 `PRODUCTION_SITE_URL` 必须设置为核实后的真实 HTTPS 域名，并另行评估是否需要修正服务器环境文件。仓库及服务器尚未完成首次部署授权。**本 PR 保持草稿；不要在核实与用户确认首次切换之前启用 `PRODUCTION_DEPLOY_ENABLED`。**
+公开网站 `https://zhongchengcars.com` 已返回 HTTP 200；旧应用目录为 `zhongcheng:zhongcheng 755`，环境文件为 `root:zhongcheng 640`，上传目录为 `zhongcheng:zhongcheng 750`。用户确认 PostgreSQL 与图片备份已验证可恢复；服务器根分区有 29G 可用。服务器环境文件的 `NEXT_PUBLIC_SITE_URL` 当前为 `http://localhost:3000`，线上 `robots.txt`、sitemap 已确实输出这个错误地址。GitHub 仓库已设置并复核非敏感变量 `PRODUCTION_SITE_URL=https://zhongchengcars.com` 和 `DEPLOY_LOCAL_PORT=3000`；本地生产构建验证了即使运行时环境仍为 localhost，生成的 robots/sitemap 也使用构建时域名。环境文件可另行审核修正，不属于自动部署脚本的修改范围。仓库及服务器尚未完成首次部署授权。**本 PR 保持草稿；`PRODUCTION_DEPLOY_ENABLED` 仍未设置，在用户确认首次切换之前不得启用。**
 
 ## 发布流程
 
@@ -44,7 +44,7 @@ ss -ltnp | grep ':3000' || true
 | `DEPLOY_HOST` | production Secret | 从阿里云控制台核对的实际 SSH IPv4 地址或 DNS 名称。 |
 | `DEPLOY_USER` | production Secret | 实际创建的专用部署账号名。 |
 | `DEPLOY_KNOWN_HOSTS` | production Secret | 与阿里云控制台或可信带外渠道核对指纹后的 OpenSSH `known_hosts` 完整行；不可只信任第一次 `ssh-keyscan` 输出。 |
-| `PRODUCTION_SITE_URL` | repository Variable | 实际线上 HTTPS origin，例如 `https://example.com`，没有结尾 `/`；构建时写入公开的 robots/sitemap。 |
+| `PRODUCTION_SITE_URL` | repository Variable | 已核实的 `https://zhongchengcars.com`，没有结尾 `/`；构建时写入公开的 robots/sitemap。 |
 | `DEPLOY_ROOT` | repository Variable | 新建并验证的版本根目录绝对路径。 |
 | `DEPLOY_LOCAL_PORT` | repository Variable | 当前 Nginx 回源的本机 Node 端口，经服务器核实。 |
 | `DEPLOY_SSH_PORT` | repository Variable，可选 | 实际 SSH 端口，默认 22。 |
