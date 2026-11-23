@@ -57,7 +57,5 @@ jobs:
           DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
           DEPLOY_SSH_PORT: ${{ vars.DEPLOY_SSH_PORT || '22' }}
           DEPLOY_ROOT: ${{ vars.DEPLOY_ROOT }}
-          DEPLOY_ENV_FILE: ${{ vars.DEPLOY_ENV_FILE }}
-          DEPLOY_PM2_APP: ${{ vars.DEPLOY_PM2_APP }}
-          PRODUCTION_SITE_URL: ${{ vars.PRODUCTION_SITE_URL }}
+          DEPLOY_LOCAL_PORT: ${{ vars.DEPLOY_LOCAL_PORT }}
         run: bash scripts/deploy-from-actions.sh "$RUNNER_TEMP/zhongcheng-release/zhongcheng-release.tar.gz"
