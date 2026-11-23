@@ -80,7 +80,7 @@ pnpm start
 
 ## 生产部署
 
-Ubuntu 24.04、Node.js 24、PostgreSQL 16、systemd、Nginx 的完整步骤见 [阿里云部署说明](docs/DEPLOYMENT_UBUNTU.md)。生产推荐启动构建后的 standalone 服务：
+GitHub Actions 自动发布的准备、开关和回滚见 [自动部署说明](DEPLOYMENT.md)。Ubuntu 24.04、Node.js 24、PostgreSQL 16、systemd、Nginx 的手动部署示例见 [阿里云部署说明](docs/DEPLOYMENT_UBUNTU.md)；线上进程管理器须以服务器实测为准。生产推荐启动构建后的 standalone 服务：
 
 ```bash
 HOSTNAME=127.0.0.1 PORT=3000 NODE_ENV=production node .next/standalone/server.js
