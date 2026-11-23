@@ -36,7 +36,7 @@ ss -ltnp | grep ':3000' || true
 
 ## GitHub 一次性设置
 
-在仓库 **Settings → Environments → production** 中创建环境，并限制部署分支为 `main`。如果设置环境审核人，每次发布会等待审核；若要 PR 合并后完全自动发布，则应在启用前设置 `main` 分支保护、必需 CI 和 PR 审核，尤其审核 `.github/workflows/`、`scripts/deploy*` 的改动。PR 作业只具备只读权限，不获得这些生产 Secret。[GitHub 对环境密钥及可复用工作流的说明](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows)要求在被调用的部署作业设置 `environment`，本仓库已这样配置。
+仓库已经创建 `production` Environment，并限制为受保护分支；当前受保护分支为 `main`。`main` 已设置必须经 PR、GitHub Actions 的 `test-and-build` 检查通过且与最新 main 同步，管理员也须遵守，禁止强推和删除。仓库目前由一人维护，必需批准人数为 0；合并前仍须由你亲自审阅代码，尤其是 `.github/workflows/`、`scripts/deploy*` 的改动。若以后有第二位可信维护者，可调整为至少 1 次批准。PR 作业只具备只读权限，不获得生产 Secret。[GitHub 对环境密钥及可复用工作流的说明](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows)要求在被调用的部署作业设置 `environment`，本仓库已这样配置。
 
 | 名称 | GitHub 位置 | 用途与安全获取方法 |
 | --- | --- | --- |
@@ -44,13 +44,13 @@ ss -ltnp | grep ':3000' || true
 | `DEPLOY_HOST` | production Secret | 从阿里云控制台核对的实际 SSH IPv4 地址或 DNS 名称。 |
 | `DEPLOY_USER` | production Secret | 实际创建的专用部署账号名。 |
 | `DEPLOY_KNOWN_HOSTS` | production Secret | 与阿里云控制台或可信带外渠道核对指纹后的 OpenSSH `known_hosts` 完整行；不可只信任第一次 `ssh-keyscan` 输出。 |
-| `PRODUCTION_SITE_URL` | repository Variable | 已核实的 `https://zhongchengcars.com`，没有结尾 `/`；构建时写入公开的 robots/sitemap。 |
+| `PRODUCTION_SITE_URL` | repository Variable，已设置 | 已核实的 `https://zhongchengcars.com`，没有结尾 `/`；构建时写入公开的 robots/sitemap。 |
 | `DEPLOY_ROOT` | repository Variable | 新建并验证的版本根目录绝对路径。 |
-| `DEPLOY_LOCAL_PORT` | repository Variable | 当前 Nginx 回源的本机 Node 端口，经服务器核实。 |
+| `DEPLOY_LOCAL_PORT` | repository Variable，已设置 | 已核实的本机 Node 端口 `3000`。 |
 | `DEPLOY_SSH_PORT` | repository Variable，可选 | 实际 SSH 端口，默认 22。 |
 | `PRODUCTION_DEPLOY_ENABLED` | repository Variable | 最后设为字符串 `true` 才开启生产发布；首次演练和确认前保持未设置。 |
 
-不要在 GitHub 设置 `DATABASE_URL`、生产 `.env`、管理员密码或图片密钥。本方案由现有 systemd `EnvironmentFile` 在服务器本地提供运行时配置；GitHub 只得到 SSH 部署账号权限。仓库当前 GitHub 连接器无法修改环境密钥或分支保护，需由仓库管理员在网页中设置。
+不要在 GitHub 设置 `DATABASE_URL`、生产 `.env`、管理员密码或图片密钥。本方案由现有 systemd `EnvironmentFile` 在服务器本地提供运行时配置；GitHub 只得到 SSH 部署账号权限。SSH 密钥尚未生成，四个 production Secret、`DEPLOY_ROOT` 和生产开关尚未设置。
 
 ## 首次验证与之后的回滚
 
