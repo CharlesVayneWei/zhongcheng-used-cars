@@ -1,0 +1,61 @@
+name: Deploy Zhongcheng release
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: zhongcheng-production
+      cancel-in-progress: false
+    steps:
+      - name: Check out the verified commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Skip superseded release
+        id: latest
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          latest="$(curl -fsS --retry 3 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/git/ref/heads/main" \
+            | node -e 'let body=""; process.stdin.on("data", c => body+=c); process.stdin.on("end", () => process.stdout.write(JSON.parse(body).object.sha))')"
+          test -n "$latest"
+          if [ "$latest" = "$RELEASE_SHA" ]; then
+            echo 'current=true' >> "$GITHUB_OUTPUT"
+          else
+            echo "Commit was superseded by $latest; skipping deployment"
+            echo 'current=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download tested release
+        if: steps.latest.outputs.current == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: zhongcheng-release
+          path: ${{ runner.temp }}/zhongcheng-release
+
+      - name: Upload and activate release over SSH
+        if: steps.latest.outputs.current == 'true'
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_SSH_PORT: ${{ vars.DEPLOY_SSH_PORT || '22' }}
+          DEPLOY_ROOT: ${{ vars.DEPLOY_ROOT }}
+          DEPLOY_LOCAL_PORT: ${{ vars.DEPLOY_LOCAL_PORT }}
+        run: bash scripts/deploy-from-actions.sh "$RUNNER_TEMP/zhongcheng-release/zhongcheng-release.tar.gz"
